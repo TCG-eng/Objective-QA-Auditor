@@ -6,7 +6,11 @@ from pypdf import PdfReader
 from openai import OpenAI
 
 app = FastAPI()
+from fastapi.responses import RedirectResponse
 
+@app.get("/")
+async def home():
+    return RedirectResponse(url="/docs")
 class ComplianceRule(BaseModel):
     rule_id: str = Field(description="Section code")
     parameter_name: str = Field(description="Metric name")
