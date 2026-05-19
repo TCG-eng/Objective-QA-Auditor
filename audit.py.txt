@@ -1,0 +1,15 @@
+import os
+
+# Your folder map
+folders = {
+    "data": "assets/",
+    "rules": "templates/",
+    "checks": "tests/"
+}
+
+def run_audit():
+    for name, path in folders.items():
+        print(f"Connecting to {name} at: {path}")
+
+if __name__ == "__main__":
+    run_audit()
