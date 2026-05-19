@@ -1,70 +1,84 @@
-import os
-from fastapi import FastAPI, UploadFile, File, HTTPException
-from pydantic import BaseModel, Field
-from typing import List, Literal
-from pypdf import PdfReader
-from openai import OpenAI
+import time
+import httpx
+import io
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
 
-app = FastAPI()
-from fastapi.responses import RedirectResponse
+app = FastAPI(title="Datov Audit System")
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
 
-@app.get("/")
-async def home():
-    return RedirectResponse(url="/docs")
-class ComplianceRule(BaseModel):
-    rule_id: str = Field(description="Section code")
-    parameter_name: str = Field(description="Metric name")
-    comparison_operator: Literal["LESS_THAN", "GREATER_THAN", "EQUALS"]
-    target_value: float = Field(description="Numeric threshold")
+# Persistent global dictionary cache to store evaluation reports for document generation
+LATEST_AUDIT_CACHE = {}
 
-class MasterComplianceProfile(BaseModel):
-    rules: List[ComplianceRule]
+class AuditRequest(BaseModel):
+    target: str
 
-class ExecutedMetric(BaseModel):
-    corresponding_rule_id: str = Field(description="Matching section code")
-    actual_measured_value: float = Field(description="Recorded number")
+class DocumentRequest(BaseModel):
+    target: str
 
-class UploadedExecutionLog(BaseModel):
-    metrics: List[ExecutedMetric]
-
-def extract_pdf_text(file_bytes) -> str:
-    reader = PdfReader(from_bytes:=bytes(file_bytes))
-    return "".join([page.extract_text() for page in reader.pages])
+@app.get("/", response_class=HTMLResponse)
+def home(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/audit")
-async def run_audit(scale_file: UploadFile = File(...), material_file: UploadFile = File(...)):
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    scale_text = extract_pdf_text(await scale_file.read())
-    material_text = extract_pdf_text(await material_file.read())
+async def run_intelligent_audit(payload: AuditRequest):
+    global LATEST_AUDIT_CACHE
+    start_time = time.time()
+   
+    # Extract clean base host domain input parameter
+    target = payload.target.strip().replace("https://", "").replace("http://", "").split("/")[0]
+    if not target:
+        raise HTTPException(status_code=400, detail="Invalid target host structure.")
 
-    scale_comp = client.beta.chat.completions.parse(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": f"Extract rules:\n{scale_text}"}],
-        response_format=MasterComplianceProfile,
-    )
-    material_comp = client.beta.chat.completions.parse(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": f"Extract metrics:\n{material_text}"}],
-        response_format=UploadedExecutionLog,
-    )
+    findings = []
+    score = 100
 
-    log_map = {m.corresponding_rule_id: m.actual_measured_value for m in material_comp.choices.message.parsed.metrics}
-    matrix = []
-    system_pass = True
+    try:
+        # Execute live network request to harvest headers
+        async with httpx.AsyncClient(timeout=8.0, follow_redirects=True) as client:
+            response = await client.get(f"https://{target}")
+            headers = response.headers
+           
+        # 1. HSTS Compliance Metric Check
+        if "Strict-Transport-Security" not in headers:
+            score -= 15
+            findings.append({
+                "title": "Missing Strict-Transport-Security (HSTS) Header",
+                "severity": "high",
+                "status": "fail",
+                "description": "The server fails to force encrypted HTTPS browser sessions.",
+                "solution": "Add this header rule to your server deployment runtime:\n`Strict-Transport-Security: max-age=63072000; includeSubDomains; preload`"
+            })
+        else:
+            findings.append({"title": "Strict-Transport-Security (HSTS)", "severity": "low", "status": "pass", "description": "Enforced HTTPS connection configurations are secure.", "solution": "No adjustment parameters required."})
 
-    for rule in scale_comp.choices.message.parsed.rules:
-        if rule.rule_id not in log_map:
-            system_pass = False
-            matrix.append({"rule_id": rule.rule_id, "verdict": "FAIL", "reason": "Missing"})
-            continue
+        # 2. Content-Security-Policy Check
+        if "Content-Security-Policy" not in headers:
+            score -= 15
+            findings.append({
+                "title": "Missing Content-Security-Policy (CSP) Protection",
+                "severity": "medium",
+                "status": "fail",
+                "description": "The ecosystem lacks origin protection boundaries to mitigate script injections.",
+                "solution": "Add the baseline parameter ruleset layout to authorized headers:\n`Content-Security-Policy: default-src 'self';`"
+            })
+        else:
+            findings.append({"title": "Content-Security-Policy (CSP)", "severity": "low", "status": "pass", "description": "Cross-site namespace verification vectors validated.", "solution": "No adjustment parameters required."})
 
-        actual = log_map[rule.rule_id]
-        passed = False
-        if rule.comparison_operator == "EQUALS" and actual == rule.target_value: passed = True
-        elif rule.comparison_operator == "LESS_THAN" and actual <= rule.target_value: passed = True
-        elif rule.comparison_operator == "GREATER_THAN" and actual >= rule.target_value: passed = True
-
-        if not passed: system_pass = False
-        matrix.append({"rule_id": rule.rule_id, "parameter": rule.parameter_name, "verdict": "PASS" if passed else "FAIL", "expected": rule.target_value, "actual": actual})
-
-    return {"status": "COMPLIANT" if system_pass else "NON_COMPLIANT", "matrix": matrix}
+        # 3. Server Signature Leak Check
+        server_header = headers.get("Server")
+        if server_header:
+            score -= 10
+            findings.append({
+                "title": "Infrastructure System Signature Identity Discovered",
+                "severity": "low",
+                "status": "fail",
+                "description": f"The node leaks explicit internal software framework data labels ({server_header}).",
+                "solution": "Configure server variables or proxy rules to strip downstream application parameters:\n`Server Tokens = Off`"
+            })
+        else:
+            findings.append({"title": "Infrastructure Signature Masking", "severity": "low", "status": "pass", "description": "Overt runtime signature identities remain protected.", "solution": "No adjustment parameters required."})
