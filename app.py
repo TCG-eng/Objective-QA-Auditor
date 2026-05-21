@@ -279,9 +279,29 @@ elif current_page == "📚 Procedures Library":
                
                 if st.button("📥 Load GitHub Document"):
                     if selected_git in docs:
+                        # 1. Download the raw binary bytes instead of reading it as plain text
                         content_resp = requests.get(docs[selected_git])
-                        st.session_state["selected_sop_text"] = content_resp.text
-                        st.success(f"✅ '{selected_git}' loaded from GitHub!")
+                       
+                        import io
+                        import pypdf
+                       
+                        # 2. Convert bytes to an in-memory stream and parse text
+                        pdf_stream = io.BytesIO(content_resp.content)
+                        pdf_reader = pypdf.PdfReader(pdf_stream)
+                       
+                        extracted_text = ""
+                        for page in pdf_reader.pages:
+                            page_text = page.extract_text()
+                            if page_text:
+                                extracted_text += page_text + "\n"
+                       
+                        # 3. Inject the clean text into the workspace
+                        if extracted_text.strip():
+                            st.session_state["selected_sop_text"] = extracted_text
+                            st.success(f"✅ '{selected_git}' loaded and parsed from GitHub!")
+                            st.rerun() # Refresh layout to display text immediately
+                        else:
+                            st.error("⚠️ Failed to extract any readable text from this PDF file.")
             else:
                 st.warning("⚠️ No .pdf files found inside the 'assets' folder.")
         else:
@@ -293,7 +313,6 @@ elif current_page == "📚 Procedures Library":
     if st.button("🔄 Reset Workspace"):
         st.session_state.pop("selected_sop_text", None)
         st.rerun()
-
 
 # =========================================================================
 # PAGE 3: ANALYTICS PERFORMANCE HISTORY
