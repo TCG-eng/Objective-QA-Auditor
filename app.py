@@ -261,7 +261,7 @@ elif current_page == "📚 Procedures Library":
         st.success(f"✅ Success! '{selected_sop}' has been loaded into your working memory. Click on '🛡️ QA Audit Hub' in the sidebar to view it.")
 
     st.markdown("---")
-    st.subheader("🌐 Datov Document Repository")
+    st.subheader("🌐 GitHub Assets Repository")
 
     # API Targeting root assets folder
     api_url = "https://api.github.com/repos/TCG-eng/Objective-QA-Auditor/contents/assets"
@@ -279,29 +279,32 @@ elif current_page == "📚 Procedures Library":
                
                 if st.button("📥 Load GitHub Document"):
                     if selected_git in docs:
-                        # 1. Download the raw binary bytes instead of reading it as plain text
-                        content_resp = requests.get(docs[selected_git])
-                       
-                        import io
-                        import pypdf
-                       
-                        # 2. Convert bytes to an in-memory stream and parse text
-                        pdf_stream = io.BytesIO(content_resp.content)
-                        pdf_reader = pypdf.PdfReader(pdf_stream)
-                       
-                        extracted_text = ""
-                        for page in pdf_reader.pages:
-                            page_text = page.extract_text()
-                            if page_text:
-                                extracted_text += page_text + "\n"
-                       
-                        # 3. Inject the clean text into the workspace
-                        if extracted_text.strip():
-                            st.session_state["selected_sop_text"] = extracted_text
-                            st.success(f"✅ '{selected_git}' loaded and parsed from GitHub!")
-                            st.rerun() # Refresh layout to display text immediately
-                        else:
-                            st.error("⚠️ Failed to extract any readable text from this PDF file.")
+                        # 1. Show an active parsing spinner right at the button
+                        with st.spinner(f"Parsing and extracting text from {selected_git}..."):
+                            content_resp = requests.get(docs[selected_git])
+                           
+                            import io
+                            import pypdf
+                           
+                            pdf_stream = io.BytesIO(content_resp.content)
+                            pdf_reader = pypdf.PdfReader(pdf_stream)
+                           
+                            extracted_text = ""
+                            for page in pdf_reader.pages:
+                                page_text = page.extract_text()
+                                if page_text:
+                                    extracted_text += page_text + "\n"
+                           
+                            if extracted_text.strip():
+                                st.session_state["selected_sop_text"] = extracted_text
+                               
+                                # 2. Force an immediate visual toast message in the bottom corner
+                                st.toast(f"🎉 Success! {selected_git} loaded into Criteria workspace.", icon="✅")
+                               
+                                # 3. Print a green success block directly under the button
+                                st.success(f"📂 Loaded successfully! Scroll up to view requirements.")
+                            else:
+                                st.error("⚠️ Failed to extract any readable text from this PDF file.")
             else:
                 st.warning("⚠️ No .pdf files found inside the 'assets' folder.")
         else:
