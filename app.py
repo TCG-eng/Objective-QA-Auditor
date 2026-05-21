@@ -78,7 +78,7 @@ if current_page == "🛡️ QA Audit Hub":
             key="specs_input"
         )
       
-        st.markdown("### 📂 Multi-File Telemetry Intake")
+        st.markdown("### 📂 Document Upload Portal")
         # UPDATED: Added pdf and docx to the allowed types list
         uploaded_files = st.file_uploader(
             "Batch drag-and-drop log files here (.txt, .log, .json, .csv, .pdf, .docx)",
@@ -88,7 +88,7 @@ if current_page == "🛡️ QA Audit Hub":
       
         manual_logs = st.text_area(
             "Or manually input raw terminal log entries here:",
-            placeholder="[DEBUG] Payload mismatch detected...",
+            placeholder="Enter raw data or text here...",
             height=120,
             key="logs_input"
         )
@@ -261,7 +261,7 @@ elif current_page == "📚 Procedures Library":
         st.success(f"✅ Success! '{selected_sop}' has been loaded into your working memory. Click on '🛡️ QA Audit Hub' in the sidebar to view it.")
 
     st.markdown("---")
-    st.subheader("🌐 GitHub Assets Repository")
+    st.subheader("🌐 Datov Document Repository")
 
     # API Targeting root assets folder
     api_url = "https://api.github.com/repos/TCG-eng/Objective-QA-Auditor/contents/assets"
