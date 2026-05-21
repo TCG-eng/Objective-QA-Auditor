@@ -76,7 +76,7 @@ if current_page == "🛡️ QA Audit Hub":
         )
        
         st.divider()
-        st.markdown("### 📂 Document Upload Intake Portal")
+        st.markdown("### 📂 Document Upload Portal")
         uploaded_files = st.file_uploader(
             "Batch drag-and-drop log files here (.txt, .log, .json, .csv)",
             type=["txt", "log", "json", "csv"],
