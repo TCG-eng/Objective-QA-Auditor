@@ -175,10 +175,10 @@ elif current_page == "📚 Procedures Library":
     st.title("📚 Datov Standard Operating Procedures (SOP) Database")
     st.caption("Store, manage, and load permanent corporate manuals or compliance checklist requirements.")
     st.markdown("---")
-   
+  
     st.subheader("📁 Central Requirements Repository")
-   
-    # Simple dictionary simulating a procedure database table
+  
+    # --- EXISTING LOGIC ---
     mock_sop_db = {
         "ISO-9001 Quality Management Standards": (
             "SOP-ISO-01: Document tracking validation must register owner IDs.\n"
@@ -195,17 +195,40 @@ elif current_page == "📚 Procedures Library":
             "SOP-DEV-02: All incoming request payloads must pass standard JSON validation filters."
         )
     }
-   
+  
     selected_sop = st.selectbox("Select a Procedure to inspect or load:", list(mock_sop_db.keys()))
-   
+  
     st.markdown("### 📋 Rulebook Content Preview")
     st.code(mock_sop_db[selected_sop], language="text")
-   
-    # Action button to load this directly into Page 1's active memory slot
+  
     if st.button("⚡ Inject Selected Procedure into Active Audit Hub Workspace", type="primary", use_container_width=True):
         st.session_state["selected_sop_text"] = mock_sop_db[selected_sop]
         st.success(f"✅ Success! '{selected_sop}' has been loaded into your working memory. Click on '🛡️ QA Audit Hub' in the sidebar to view it.")
 
+    # --- ADDED: GitHub Assets Integration ---
+    st.markdown("---")
+    st.subheader("🌐 GitHub Assets Repository")
+   
+    api_url = "https://api.github.com/repos/TCG-eng/Objective-QA-Auditor/contents/assets"
+    response = requests.get(api_url)
+   
+    if response.status_code == 200:
+        files = response.json()
+        docs = {f['name']: f['download_url'] for f in files if f['name'].endswith(('.txt', '.md'))}
+       
+        selected_git = st.selectbox("Select document from GitHub:", list(docs.keys()))
+       
+        if st.button("📥 Load GitHub Document"):
+            content_resp = requests.get(docs[selected_git])
+            st.session_state["selected_sop_text"] = content_resp.text
+            st.success(f"✅ '{selected_git}' loaded from GitHub!")
+           
+        if st.button("🔄 Reset Workspace"):
+            st.session_state.pop("selected_sop_text", None)
+            st.rerun()
+    else:
+        st.warning("GitHub repository 'assets' folder not accessible.")
+)
 # =========================================================================
 # PAGE 3: ANALYTICS PERFORMANCE HISTORY
 # =========================================================================
