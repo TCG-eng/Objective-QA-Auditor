@@ -84,8 +84,8 @@ if current_page == "🛡️ QA Audit Hub":
         )
        
         manual_logs = st.text_area(
-            "Or manually input raw terminal log entries here:",
-            placeholder="[DEBUG] Payload mismatch detected...",
+            "Or manually Input raw data entries here:",
+            placeholder="Input Data Here...",
             height=120,
             key="logs_input"
         )
