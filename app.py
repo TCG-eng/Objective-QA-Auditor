@@ -74,21 +74,70 @@ if current_page == "🛡️ QA Audit Hub":
             height=180,
             key="specs_input"
         )
-       
-        st.divider()
-        st.markdown("### 📂 Document Upload Portal")
-        uploaded_files = st.file_uploader(
-            "Batch drag-and-drop log files here (.txt, .log, .json, .csv)",
-            type=["txt", "log", "json", "csv"],
-            accept_multiple_files=True
-        )
-       
-        manual_logs = st.text_area(
-            "Or manually Input raw data entries here:",
-            placeholder="Input Data Here...",
-            height=120,
-            key="logs_input"
-        )
+       st.divider()
+st.markdown("### 📂 Document Upload Portal")
+
+# --- 1. HIGH-STABILITY INPUT FRONTEND ---
+
+# File uploader with explicit configuration
+uploaded_files = st.file_uploader(
+    "Batch drag-and-drop log files here (.txt, .log, .json, .csv)",
+    type=["txt", "log", "json", "csv"],
+    accept_multiple_files=True,
+    key="file_uploader_stream"
+)
+
+# Text area with sanitization placeholder
+manual_logs = st.text_area(
+    "Or manually input raw data entries here:",
+    placeholder="Input Data Here...",
+    height=120,
+    key="logs_input"
+)
+
+
+# --- 2. SUPER ROBUST PIPELINE BACKEND ---
+
+final_payload = ""
+processing_errors = []
+
+# Priority 1: Process File Uploads Safely
+if uploaded_files:
+    compiled_chunks = []
+    for uploaded_file in uploaded_files:
+        try:
+            # Read bytes to prevent memory leaks on large logs
+            file_bytes = uploaded_file.read()
+           
+            # Defensive decoding: "replace" forces bad characters to become "?" instead of crashing Python
+            decoded_content = file_bytes.decode("utf-8", errors="replace")
+           
+            # Format cleanly with file boundaries so Gemini knows where one ends and next begins
+            compiled_chunks.append(f"--- FILE: {uploaded_file.name} ---\n{decoded_content}")
+        except Exception as e:
+            processing_errors.append(f"Error reading {uploaded_file.name}: {str(e)}")
+           
+    if compiled_chunks:
+        final_payload = "\n\n".join(compiled_chunks)
+
+# Priority 2: Process Manual Logs Safely (Only if no files are uploaded)
+elif manual_logs and manual_logs.strip():
+    # .strip() removes accidental leading/trailing spaces or empty enters
+    final_payload = manual_logs.strip()
+
+
+# --- 3. STATE SYNC & ERROR REPORTING ---
+
+# Safely hand off clean data to your existing audit engine memory key
+if final_payload:
+    st.session_state["selected_sop_text"] = final_payload
+else:
+    st.session_state["selected_sop_text"] = None
+
+# If any bad file corrupted, show a warning but DON'T crash the screen
+if processing_errors:
+    for error in processing_errors:
+        st.error(f"⚠️ {error}")
        
         parsed_logs_payload = ""
         if uploaded_files:
