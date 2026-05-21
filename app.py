@@ -178,7 +178,7 @@ elif current_page == "📚 Procedures Library":
   
     st.subheader("📁 Central Requirements Repository")
   
-    # --- EXISTING LOGIC ---
+    # EXISTING MOCK DATABASE
     mock_sop_db = {
         "ISO-9001 Quality Management Standards": (
             "SOP-ISO-01: Document tracking validation must register owner IDs.\n"
@@ -205,10 +205,11 @@ elif current_page == "📚 Procedures Library":
         st.session_state["selected_sop_text"] = mock_sop_db[selected_sop]
         st.success(f"✅ Success! '{selected_sop}' has been loaded into your working memory. Click on '🛡️ QA Audit Hub' in the sidebar to view it.")
 
-    # --- ADDED: GitHub Assets Integration ---
+    # ADDITION: GitHub Assets Repository
     st.markdown("---")
     st.subheader("🌐 GitHub Assets Repository")
    
+    # Ensure 'requests' is imported at the top of your app.py
     api_url = "https://api.github.com/repos/TCG-eng/Objective-QA-Auditor/contents/assets"
     response = requests.get(api_url)
    
@@ -227,8 +228,7 @@ elif current_page == "📚 Procedures Library":
             st.session_state.pop("selected_sop_text", None)
             st.rerun()
     else:
-        st.warning("GitHub repository 'assets' folder not accessible.")
-)
+        st.error(f"GitHub connection failed with status: {response.status_code}. Ensure the 'assets' folder exists at the root of your repo.")
 # =========================================================================
 # PAGE 3: ANALYTICS PERFORMANCE HISTORY
 # =========================================================================
