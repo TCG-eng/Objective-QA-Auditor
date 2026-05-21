@@ -1,8 +1,5 @@
 import streamlit as st
 import pandas as pd
-import os
-import pypdf
-import docx
 from google import genai
 from google.genai import types
 import time
@@ -73,99 +70,22 @@ if current_page == "🛡️ QA Audit Hub":
             value=default_specs,
             height=180,
             key="specs_input"
-)
-    st.divider()
-    st.markdown("### 📂 Document Upload Portal")
-
-    # --- 1. HIGH-STABILITY INPUT FRONTEND ---
-    uploaded_files = st.file_uploader(
-        "Batch drag-and-drop log files here (.txt, .log, .json, .csv)",
-        type=["txt", "log", "json", "csv"],
-        accept_multiple_files=True,
-        key="file_uploader_stream"
-    )
-
-    manual_logs = st.text_area(
-        "Or manually input raw data entries here:",
-        placeholder="Input Data Here...",
-        height=120,
-        key="logs_input"
-    )
-
-    # --- 2. SUPER ROBUST PIPELINE BACKEND ---
-    final_payload = ""
-    processing_errors = []
-
-    # Priority 1: Process File Uploads Safely
-    if uploaded_files:
-        compiled_chunks = []
-        for uploaded_file in uploaded_files:
-            try:
-                file_bytes = uploaded_file.read()
-                decoded_content = file_bytes.decode("utf-8", errors="replace")
-                compiled_chunks.append(f"--- FILE: {uploaded_file.name} ---\n{decoded_content}")
-            except Exception as e:
-                processing_errors.append(f"Error reading {uploaded_file.name}: {str(e)}")
-               
-        if compiled_chunks:
-            final_payload = "\n\n".join(compiled_chunks)
-
-    # Priority 2: Process Manual Logs Safely (Only if no files are uploaded)
-    elif manual_logs and manual_logs.strip():
-        final_payload = manual_logs.strip()
-
-    # --- 3. STATE SYNC & ERROR REPORTING ---
-    if final_payload:
-        st.session_state["selected_sop_text"] = final_payload
-    else:
-        st.session_state["selected_sop_text"] = None
-
-    if processing_errors:
-        for error in processing_errors:
-            st.error(f"⚠️ {error}")
-
-# --- 2. SUPER ROBUST PIPELINE BACKEND ---
-
-final_payload = ""
-processing_errors = []
-
-# Priority 1: Process File Uploads Safely
-if uploaded_files:
-    compiled_chunks = []
-    for uploaded_file in uploaded_files:
-        try:
-            # Read bytes to prevent memory leaks on large logs
-            file_bytes = uploaded_file.read()
-           
-            # Defensive decoding: "replace" forces bad characters to become "?" instead of crashing Python
-            decoded_content = file_bytes.decode("utf-8", errors="replace")
-           
-            # Format cleanly with file boundaries so Gemini knows where one ends and next begins
-            compiled_chunks.append(f"--- FILE: {uploaded_file.name} ---\n{decoded_content}")
-        except Exception as e:
-            processing_errors.append(f"Error reading {uploaded_file.name}: {str(e)}")
-           
-    if compiled_chunks:
-        final_payload = "\n\n".join(compiled_chunks)
-
-# Priority 2: Process Manual Logs Safely (Only if no files are uploaded)
-elif manual_logs and manual_logs.strip():
-    # .strip() removes accidental leading/trailing spaces or empty enters
-    final_payload = manual_logs.strip()
-
-
-# --- 3. STATE SYNC & ERROR REPORTING ---
-
-# Safely hand off clean data to your existing audit engine memory key
-if final_payload:
-    st.session_state["selected_sop_text"] = final_payload
-else:
-    st.session_state["selected_sop_text"] = None
-
-# If any bad file corrupted, show a warning but DON'T crash the screen
-if processing_errors:
-    for error in processing_errors:
-        st.error(f"⚠️ {error}")
+        )
+       
+        st.divider()
+        st.markdown("### 📂 Multi-File Telemetry Intake")
+        uploaded_files = st.file_uploader(
+            "Batch drag-and-drop log files here (.txt, .log, .json, .csv)",
+            type=["txt", "log", "json", "csv"],
+            accept_multiple_files=True
+        )
+       
+        manual_logs = st.text_area(
+            "Or manually input raw terminal log entries here:",
+            placeholder="[DEBUG] Payload mismatch detected...",
+            height=120,
+            key="logs_input"
+        )
        
         parsed_logs_payload = ""
         if uploaded_files:
@@ -252,55 +172,39 @@ if processing_errors:
 # PAGE 2: PROCEDURES LIBRARY DATABASE
 # =========================================================================
 elif current_page == "📚 Procedures Library":
-    st.title("🛡️ Datov Enterprise SOP Command Center")
+    st.title("📚 Datov Standard Operating Procedures (SOP) Database")
+    st.caption("Store, manage, and load permanent corporate manuals or compliance checklist requirements.")
     st.markdown("---")
    
-    # 1. Advanced Processing Engine
-    def process_asset(file_path):
-        try:
-            ext = os.path.splitext(file_path)[1].lower()
-            if ext == ".pdf":
-                reader = pypdf.PdfReader(file_path)
-                return "\n".join([page.extract_text() for page in reader.pages if page.extract_text()])
-            elif ext == ".docx":
-                doc = docx.Document(file_path)
-                return "\n".join([p.text for p in doc.paragraphs if p.text.strip()])
-            else:
-                with open(file_path, "r", encoding="utf-8") as f:
-                    return f.read()
-        except Exception as e:
-            return f"CRITICAL: Failed to parse asset: {e}"
-
-    # 2. Command Center Layout
-    assets_dir = "assets"
-    # Ensure assets directory exists
-    if not os.path.exists(assets_dir):
-        os.makedirs(assets_dir)
-       
-    files = [f for f in os.listdir(assets_dir) if f.endswith((".pdf", ".docx", ".md", ".txt"))]
+    st.subheader("📁 Central Requirements Repository")
    
-    col1, col2 = st.columns([1, 1])
+    # Simple dictionary simulating a procedure database table
+    mock_sop_db = {
+        "ISO-9001 Quality Management Standards": (
+            "SOP-ISO-01: Document tracking validation must register owner IDs.\n"
+            "SOP-ISO-02: All sub-system code deployment cycles require continuous data backups.\n"
+            "SOP-ISO-03: Security auditing protocols must flag plain-text credentials."
+        ),
+        "SOC2 Compliance Security Protocol": (
+            "SOP-SOC-01: Network infrastructure routes must force SSL/TLS endpoint encryption.\n"
+            "SOP-SOC-02: Data at rest inside relational tables must obscure user email addresses.\n"
+            "SOP-SOC-03: System failure log blocks must generate active telemetry tracing alerts."
+        ),
+        "Standard Developer Release Checklist": (
+            "SOP-DEV-01: API request execution time must remain consistently beneath 200ms.\n"
+            "SOP-DEV-02: All incoming request payloads must pass standard JSON validation filters."
+        )
+    }
    
-    with col1:
-        st.subheader("📁 Asset Selection")
-        selected_asset = st.selectbox("Index Target File:", files if files else ["No assets found"])
-       
-        if st.button("🚀 Initialize Asset for Audit", type="primary", use_container_width=True):
-            if selected_asset != "No assets found":
-                full_path = os.path.join(assets_dir, selected_asset)
-                with st.spinner(f"Indexing {selected_asset}..."):
-                    content = process_asset(full_path)
-                    st.session_state["selected_sop_text"] = content
-                    st.success("Asset Injected into Memory.")
+    selected_sop = st.selectbox("Select a Procedure to inspect or load:", list(mock_sop_db.keys()))
    
-    with col2:
-        st.subheader("📊 Metadata")
-        if files:
-            st.info(f"**Target:** {selected_asset}")
-            st.write(f"**Source:** /assets/{selected_asset}")
-            st.write(f"**Status:** Ready for Gemini Analysis")
-        else:
-            st.warning("Please upload files to the /assets folder.")
+    st.markdown("### 📋 Rulebook Content Preview")
+    st.code(mock_sop_db[selected_sop], language="text")
+   
+    # Action button to load this directly into Page 1's active memory slot
+    if st.button("⚡ Inject Selected Procedure into Active Audit Hub Workspace", type="primary", use_container_width=True):
+        st.session_state["selected_sop_text"] = mock_sop_db[selected_sop]
+        st.success(f"✅ Success! '{selected_sop}' has been loaded into your working memory. Click on '🛡️ QA Audit Hub' in the sidebar to view it.")
 
 # =========================================================================
 # PAGE 3: ANALYTICS PERFORMANCE HISTORY
