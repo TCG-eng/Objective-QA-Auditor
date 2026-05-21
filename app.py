@@ -3,7 +3,7 @@ import pandas as pd
 from google import genai
 from google.genai import types
 import time
-import request
+import requests
 
 # 1. System Layout & Window Customization
 st.set_page_config(
