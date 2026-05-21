@@ -172,39 +172,55 @@ if current_page == "🛡️ QA Audit Hub":
 # PAGE 2: PROCEDURES LIBRARY DATABASE
 # =========================================================================
 elif current_page == "📚 Procedures Library":
-    st.title("📚 Datov Standard Operating Procedures (SOP) Database")
-    st.caption("Store, manage, and load permanent corporate manuals or compliance checklist requirements.")
+    st.title("🛡️ Datov Enterprise SOP Command Center")
     st.markdown("---")
    
-    st.subheader("📁 Central Requirements Repository")
+    # 1. Advanced Processing Engine
+    def process_asset(file_path):
+        try:
+            ext = os.path.splitext(file_path)[1].lower()
+            if ext == ".pdf":
+                reader = pypdf.PdfReader(file_path)
+                return "\n".join([page.extract_text() for page in reader.pages if page.extract_text()])
+            elif ext == ".docx":
+                doc = docx.Document(file_path)
+                return "\n".join([p.text for p in doc.paragraphs if p.text.strip()])
+            else:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    return f.read()
+        except Exception as e:
+            return f"CRITICAL: Failed to parse asset: {e}"
+
+    # 2. Command Center Layout
+    assets_dir = "assets"
+    # Ensure assets directory exists
+    if not os.path.exists(assets_dir):
+        os.makedirs(assets_dir)
+       
+    files = [f for f in os.listdir(assets_dir) if f.endswith((".pdf", ".docx", ".md", ".txt"))]
    
-    # Simple dictionary simulating a procedure database table
-    mock_sop_db = {
-        "ISO-9001 Quality Management Standards": (
-            "SOP-ISO-01: Document tracking validation must register owner IDs.\n"
-            "SOP-ISO-02: All sub-system code deployment cycles require continuous data backups.\n"
-            "SOP-ISO-03: Security auditing protocols must flag plain-text credentials."
-        ),
-        "SOC2 Compliance Security Protocol": (
-            "SOP-SOC-01: Network infrastructure routes must force SSL/TLS endpoint encryption.\n"
-            "SOP-SOC-02: Data at rest inside relational tables must obscure user email addresses.\n"
-            "SOP-SOC-03: System failure log blocks must generate active telemetry tracing alerts."
-        ),
-        "Standard Developer Release Checklist": (
-            "SOP-DEV-01: API request execution time must remain consistently beneath 200ms.\n"
-            "SOP-DEV-02: All incoming request payloads must pass standard JSON validation filters."
-        )
-    }
+    col1, col2 = st.columns([1, 1])
    
-    selected_sop = st.selectbox("Select a Procedure to inspect or load:", list(mock_sop_db.keys()))
+    with col1:
+        st.subheader("📁 Asset Selection")
+        selected_asset = st.selectbox("Index Target File:", files if files else ["No assets found"])
+       
+        if st.button("🚀 Initialize Asset for Audit", type="primary", use_container_width=True):
+            if selected_asset != "No assets found":
+                full_path = os.path.join(assets_dir, selected_asset)
+                with st.spinner(f"Indexing {selected_asset}..."):
+                    content = process_asset(full_path)
+                    st.session_state["selected_sop_text"] = content
+                    st.success("Asset Injected into Memory.")
    
-    st.markdown("### 📋 Rulebook Content Preview")
-    st.code(mock_sop_db[selected_sop], language="text")
-   
-    # Action button to load this directly into Page 1's active memory slot
-    if st.button("⚡ Inject Selected Procedure into Active Audit Hub Workspace", type="primary", use_container_width=True):
-        st.session_state["selected_sop_text"] = mock_sop_db[selected_sop]
-        st.success(f"✅ Success! '{selected_sop}' has been loaded into your working memory. Click on '🛡️ QA Audit Hub' in the sidebar to view it.")
+    with col2:
+        st.subheader("📊 Metadata")
+        if files:
+            st.info(f"**Target:** {selected_asset}")
+            st.write(f"**Source:** /assets/{selected_asset}")
+            st.write(f"**Status:** Ready for Gemini Analysis")
+        else:
+            st.warning("Please upload files to the /assets folder."))
 
 # =========================================================================
 # PAGE 3: ANALYTICS PERFORMANCE HISTORY
