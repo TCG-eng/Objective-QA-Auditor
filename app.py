@@ -3,7 +3,6 @@ import pandas as pd
 from google import genai
 from google.genai import types
 import time
-import requests
 
 # 1. System Layout & Window Customization
 st.set_page_config(
@@ -174,49 +173,38 @@ if current_page == "🛡️ QA Audit Hub":
 # =========================================================================
 elif current_page == "📚 Procedures Library":
     st.title("📚 Datov Standard Operating Procedures (SOP) Database")
-    st.caption("Store, manage, and load permanent corporate manuals.")
+    st.caption("Store, manage, and load permanent corporate manuals or compliance checklist requirements.")
     st.markdown("---")
+   
     st.subheader("📁 Central Requirements Repository")
-
-    # LIVE CONNECTION TO GITHUB 'assets' FOLDER
-    GITHUB_OWNER = "TCG-eng"
-    GITHUB_REPO = "Objective-QA-Auditor"
-    FOLDER_PATH = "assets"
    
-    api_url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/contents/{FOLDER_PATH}"
+    # Simple dictionary simulating a procedure database table
+    mock_sop_db = {
+        "ISO-9001 Quality Management Standards": (
+            "SOP-ISO-01: Document tracking validation must register owner IDs.\n"
+            "SOP-ISO-02: All sub-system code deployment cycles require continuous data backups.\n"
+            "SOP-ISO-03: Security auditing protocols must flag plain-text credentials."
+        ),
+        "SOC2 Compliance Security Protocol": (
+            "SOP-SOC-01: Network infrastructure routes must force SSL/TLS endpoint encryption.\n"
+            "SOP-SOC-02: Data at rest inside relational tables must obscure user email addresses.\n"
+            "SOP-SOC-03: System failure log blocks must generate active telemetry tracing alerts."
+        ),
+        "Standard Developer Release Checklist": (
+            "SOP-DEV-01: API request execution time must remain consistently beneath 200ms.\n"
+            "SOP-DEV-02: All incoming request payloads must pass standard JSON validation filters."
+        )
+    }
    
-    try:
-        response = requests.get(api_url)
-        if response.status_code == 200:
-            files_list = response.json()
-            # Filters for only .txt or .md files
-            repo_docs = {f["name"]: f["download_url"] for f in files_list if f["name"].endswith((".txt", ".md"))}
-           
-            if repo_docs:
-                selected_file = st.selectbox("Select a live repo file:", list(repo_docs.keys()))
-               
-                # Fetch raw content from the selected file
-                content_resp = requests.get(repo_docs[selected_file])
-                active_content = content_resp.text
-               
-                st.markdown("### 📋 Live Rulebook Content Preview")
-                st.code(active_content, language="text")
-               
-                if st.button("⚡ Inject into Active Audit Hub", type="primary"):
-                    st.session_state["selected_sop_text"] = active_content
-                    st.success(f"✅ Loaded '{selected_file}' into session state.")
-               
-                if st.button("🔄 Clear/Reset"):
-                    if "selected_sop_text" in st.session_state:
-                        del st.session_state["selected_sop_text"]
-                    st.rerun()
-            else:
-                st.warning(f"No .txt or .md files found in the '{FOLDER_PATH}' folder.")
-        else:
-            st.error(f"Connection error: Status {response.status_code}")
-    except Exception as e:
-        st.error(f"Connection failed: {e}")
-
+    selected_sop = st.selectbox("Select a Procedure to inspect or load:", list(mock_sop_db.keys()))
+   
+    st.markdown("### 📋 Rulebook Content Preview")
+    st.code(mock_sop_db[selected_sop], language="text")
+   
+    # Action button to load this directly into Page 1's active memory slot
+    if st.button("⚡ Inject Selected Procedure into Active Audit Hub Workspace", type="primary", use_container_width=True):
+        st.session_state["selected_sop_text"] = mock_sop_db[selected_sop]
+        st.success(f"✅ Success! '{selected_sop}' has been loaded into your working memory. Click on '🛡️ QA Audit Hub' in the sidebar to view it.")
 
 # =========================================================================
 # PAGE 3: ANALYTICS PERFORMANCE HISTORY
