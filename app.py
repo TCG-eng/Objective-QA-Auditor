@@ -208,12 +208,13 @@ elif current_page == "📚 Procedures Library":
         st.error(f"Connection failed: {e}")
    
     st.markdown("### 📋 Rulebook Content Preview")
-    st.code(mock_sop_db[selected_sop], language="text")
-   
-    # Action button to load this directly into Page 1's active memory slot
-    if st.button("⚡ Inject Selected Procedure into Active Audit Hub Workspace", type="primary", use_container_width=True):
-        st.session_state["selected_sop_text"] = mock_sop_db[selected_sop]
-        st.success(f"✅ Success! '{selected_sop}' has been loaded into your working memory. Click on '🛡️ QA Audit Hub' in the sidebar to view it.")
+    # Use 'active_content' instead of the old mock_sop_db
+                st.code(active_content, language="text")
+
+                # Action button to load this into active memory
+                if st.button("⚡ Inject Selected Procedure into Active Audit Hub Workspace", type="primary"):
+                    st.session_state["selected_sop_text"] = active_content
+                    st.success(f"✅ Success! '{selected_file}' has been loaded into your working memory.")
 
 # =========================================================================
 # PAGE 3: ANALYTICS PERFORMANCE HISTORY
