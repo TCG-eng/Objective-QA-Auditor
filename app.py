@@ -277,12 +277,7 @@ elif current_page == "📚 Procedures Library":
     try:
         response = requests.get(api_url)
       
-        if response.status_code == 200:
-            files = response.json()
-            [span_6](start_span)docs = {f['name']: f['download_url'] for f in files if f['name'].lower().endswith('.pdf')}[span_6](end_span)
-          
-            if docs:
-                [span_7](start_span)selected_git = st.selectbox("Select document from GitHub:", list(docs.keys()))[span_7](end_span)
+        docs = {f['name']: f['download_url'] for f in files if f['name'].lower().endswith('.pdf')}
               
                 [span_8](start_span)if st.button("📥 Load GitHub Document"):[span_8](end_span)
                     [span_9](start_span)if selected_git in docs:[span_9](end_span)
