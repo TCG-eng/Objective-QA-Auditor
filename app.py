@@ -1,5 +1,8 @@
 import streamlit as st
 import pandas as pd
+import os
+import pypdf
+import docx
 from google import genai
 from google.genai import types
 import time
