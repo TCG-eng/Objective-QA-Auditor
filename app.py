@@ -220,7 +220,7 @@ elif current_page == "📚 Procedures Library":
             st.write(f"**Source:** /assets/{selected_asset}")
             st.write(f"**Status:** Ready for Gemini Analysis")
         else:
-            st.warning("Please upload files to the /assets folder."))
+            st.warning("Please upload files to the /assets folder.")
 
 # =========================================================================
 # PAGE 3: ANALYTICS PERFORMANCE HISTORY
