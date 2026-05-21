@@ -67,7 +67,6 @@ if current_page == "🛡️ QA Audit Hub":
     col_inputs, col_results = st.columns([1, 1.3], gap="large")
 
     with col_inputs:
-        with col_inputs:
         st.subheader("📥 Data Intake Engine")
         st.markdown("### 📋 System Requirements Criteria")
      
@@ -83,6 +82,7 @@ if current_page == "🛡️ QA Audit Hub":
             height=180,
             key="specs_input"
         )
+        
 
       
         st.markdown("### 📂 Document Upload Portal")
