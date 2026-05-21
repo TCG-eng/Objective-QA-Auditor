@@ -173,7 +173,12 @@ if current_page == "🛡️ QA Audit Hub":
 # PAGE 2: PROCEDURES LIBRARY DATABASE
 # =========================================================================
 elif current_page == "📚 Procedures Library":
-        # LIVE CONNECTION TO GITHUB 'assets' FOLDER
+    st.title("📚 Datov Standard Operating Procedures (SOP) Database")
+    st.caption("Store, manage, and load permanent corporate manuals.")
+    st.markdown("---")
+    st.subheader("📁 Central Requirements Repository")
+
+    # LIVE CONNECTION TO GITHUB 'assets' FOLDER
     GITHUB_OWNER = "TCG-eng"
     GITHUB_REPO = "Objective-QA-Auditor"
     FOLDER_PATH = "assets"
@@ -184,7 +189,7 @@ elif current_page == "📚 Procedures Library":
         response = requests.get(api_url)
         if response.status_code == 200:
             files_list = response.json()
-            # Filters files to only show .txt or .md files
+            # Filters for only .txt or .md files
             repo_docs = {f["name"]: f["download_url"] for f in files_list if f["name"].endswith((".txt", ".md"))}
            
             if repo_docs:
@@ -200,21 +205,18 @@ elif current_page == "📚 Procedures Library":
                 if st.button("⚡ Inject into Active Audit Hub", type="primary"):
                     st.session_state["selected_sop_text"] = active_content
                     st.success(f"✅ Loaded '{selected_file}' into session state.")
+               
+                if st.button("🔄 Clear/Reset"):
+                    if "selected_sop_text" in st.session_state:
+                        del st.session_state["selected_sop_text"]
+                    st.rerun()
             else:
                 st.warning(f"No .txt or .md files found in the '{FOLDER_PATH}' folder.")
         else:
             st.error(f"Connection error: Status {response.status_code}")
     except Exception as e:
         st.error(f"Connection failed: {e}")
-   
-    st.markdown("### 📋 Rulebook Content Preview")
-    # Use 'active_content' instead of the old mock_sop_db
-                st.code(active_content, language="text")
 
-                # Action button to load this into active memory
-                if st.button("⚡ Inject Selected Procedure into Active Audit Hub Workspace", type="primary"):
-                    st.session_state["selected_sop_text"] = active_content
-                    st.success(f"✅ Success! '{selected_file}' has been loaded into your working memory.")
 
 # =========================================================================
 # PAGE 3: ANALYTICS PERFORMANCE HISTORY
