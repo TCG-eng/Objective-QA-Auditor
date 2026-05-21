@@ -267,7 +267,7 @@ elif current_page == "📚 Procedures Library":
         st.session_state["selected_sop_text"] = mock_sop_db[selected_sop]
         st.success(f"✅ Success! '{selected_sop}' has been loaded into your working memory. Click on '🛡️ QA Audit Hub' in the sidebar to view it.")
 
-     st.markdown("---")
+    st.markdown("---")
     st.subheader("🌐 GitHub Assets Repository")
 
     # API Targeting root assets folder
