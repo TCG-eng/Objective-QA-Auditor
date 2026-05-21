@@ -162,7 +162,8 @@ if current_page == "🛡️ QA Audit Hub":
                         "(A brief professional summary tracking compliance recommendations)"
                     )
                   
-                    user_payload = f"Project Context: {project_uid}\n\n[CRITERIA]:\n{expected_specs}\n\n[LOGS]:\n{parsed_logs_payload}"
+                    true_criteria = st.session_state.get("selected_sop_text", expected_specs)
+                    user_payload = f"Project Context: {project_uid}\n\n[CRITERIA]:\n{true_criteria}\n\n[LOGS]:\n{parsed_logs_payload}"
                   
                     try:
                         status_container.update(label="Engaging Gemini generative reasoning arrays...", state="running")
