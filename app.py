@@ -73,7 +73,7 @@ if current_page == "🛡️ QA Audit Hub":
         )
        
         st.divider()
-        st.markdown("### 📂 Multi-File Telemetry Intake")
+        st.markdown("### 📂 Document Upload Portal")
         uploaded_files = st.file_uploader(
             "Batch drag-and-drop log files here (.txt, .log, .json, .csv)",
             type=["txt", "log", "json", "csv"],
@@ -82,7 +82,7 @@ if current_page == "🛡️ QA Audit Hub":
        
         manual_logs = st.text_area(
             "Or manually input raw terminal log entries here:",
-            placeholder="[DEBUG] Payload mismatch detected...",
+            placeholder="Enter manual data here...",
             height=120,
             key="logs_input"
         )
