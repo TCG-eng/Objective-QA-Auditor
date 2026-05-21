@@ -246,11 +246,10 @@ elif current_page == "📚 Procedures Library":
        
         if response.status_code == 200:
             files = response.json()
-            # Secures and parses out valid document profiles
-            docs = {f['name']: f['download_url'] for f in files if f['name'].endswith(('.txt', '.md'))}
+            # Changed to look for .pdf files in your assets folder
+            docs = {f['name']: f['download_url'] for f in files if f['name'].lower().endswith('.pdf')}
            
             if docs:
-                # --- INDENTATION FIXED TO THE RIGHT SECURELY ---
                 selected_git = st.selectbox("Select document from GitHub:", list(docs.keys()))
                
                 if st.button("📥 Load GitHub Document"):
@@ -259,7 +258,7 @@ elif current_page == "📚 Procedures Library":
                         st.session_state["selected_sop_text"] = content_resp.text
                         st.success(f"✅ '{selected_git}' loaded from GitHub!")
             else:
-                st.warning("⚠️ No .txt or .md files found inside the 'assets' folder.")
+                st.warning("⚠️ No .pdf files found inside the 'assets' folder.")
         else:
             st.error(f"GitHub connection failed with status: {response.status_code}. Ensure the 'assets' folder exists at the root of your repo.")
            
