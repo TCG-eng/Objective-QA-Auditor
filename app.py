@@ -73,28 +73,56 @@ if current_page == "🛡️ QA Audit Hub":
             value=default_specs,
             height=180,
             key="specs_input"
-        )
-       st.divider()
-st.markdown("### 📂 Document Upload Portal")
-
-# --- 1. HIGH-STABILITY INPUT FRONTEND ---
-
-# File uploader with explicit configuration
-uploaded_files = st.file_uploader(
-    "Batch drag-and-drop log files here (.txt, .log, .json, .csv)",
-    type=["txt", "log", "json", "csv"],
-    accept_multiple_files=True,
-    key="file_uploader_stream"
 )
+    st.divider()
+    st.markdown("### 📂 Document Upload Portal")
 
-# Text area with sanitization placeholder
-manual_logs = st.text_area(
-    "Or manually input raw data entries here:",
-    placeholder="Input Data Here...",
-    height=120,
-    key="logs_input"
-)
+    # --- 1. HIGH-STABILITY INPUT FRONTEND ---
+    uploaded_files = st.file_uploader(
+        "Batch drag-and-drop log files here (.txt, .log, .json, .csv)",
+        type=["txt", "log", "json", "csv"],
+        accept_multiple_files=True,
+        key="file_uploader_stream"
+    )
 
+    manual_logs = st.text_area(
+        "Or manually input raw data entries here:",
+        placeholder="Input Data Here...",
+        height=120,
+        key="logs_input"
+    )
+
+    # --- 2. SUPER ROBUST PIPELINE BACKEND ---
+    final_payload = ""
+    processing_errors = []
+
+    # Priority 1: Process File Uploads Safely
+    if uploaded_files:
+        compiled_chunks = []
+        for uploaded_file in uploaded_files:
+            try:
+                file_bytes = uploaded_file.read()
+                decoded_content = file_bytes.decode("utf-8", errors="replace")
+                compiled_chunks.append(f"--- FILE: {uploaded_file.name} ---\n{decoded_content}")
+            except Exception as e:
+                processing_errors.append(f"Error reading {uploaded_file.name}: {str(e)}")
+               
+        if compiled_chunks:
+            final_payload = "\n\n".join(compiled_chunks)
+
+    # Priority 2: Process Manual Logs Safely (Only if no files are uploaded)
+    elif manual_logs and manual_logs.strip():
+        final_payload = manual_logs.strip()
+
+    # --- 3. STATE SYNC & ERROR REPORTING ---
+    if final_payload:
+        st.session_state["selected_sop_text"] = final_payload
+    else:
+        st.session_state["selected_sop_text"] = None
+
+    if processing_errors:
+        for error in processing_errors:
+            st.error(f"⚠️ {error}")
 
 # --- 2. SUPER ROBUST PIPELINE BACKEND ---
 
