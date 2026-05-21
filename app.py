@@ -78,11 +78,11 @@ if current_page == "🛡️ QA Audit Hub":
             key="specs_input"
         )
       
-        st.divider()
         st.markdown("### 📂 Multi-File Telemetry Intake")
+        # UPDATED: Added pdf and docx to the allowed types list
         uploaded_files = st.file_uploader(
-            "Batch drag-and-drop log files here (.txt, .log, .json, .csv)",
-            type=["txt", "log", "json", "csv"],
+            "Batch drag-and-drop log files here (.txt, .log, .json, .csv, .pdf, .docx)",
+            type=["txt", "log", "json", "csv", "pdf", "docx"],
             accept_multiple_files=True
         )
       
@@ -97,12 +97,37 @@ if current_page == "🛡️ QA Audit Hub":
         if uploaded_files:
             st.markdown("###### 📦 Active File Inventory Manifest")
             for f in uploaded_files:
-                file_contents = f.read().decode("utf-8")
+                file_name_lower = f.name.lower()
+                file_contents = ""
+               
+                try:
+                    # CASE 1: Handle PDF Files cleanly
+                    if file_name_lower.endswith('.pdf'):
+                        import pypdf
+                        pdf_reader = pypdf.PdfReader(f)
+                        for page in pdf_reader.pages:
+                            page_text = page.extract_text()
+                            if page_text:
+                                file_contents += page_text + "\n"
+                               
+                    # CASE 2: Handle Word Documents cleanly
+                    elif file_name_lower.endswith('.docx'):
+                        import docx
+                        doc = docx.Document(f)
+                        file_contents = "\n".join([p.text for p in doc.paragraphs])
+                       
+                    # CASE 3: Standard plain text log/data files
+                    else:
+                        file_contents = f.read().decode("utf-8")
+                       
+                except Exception as parse_error:
+                    st.error(f"⚠️ Could not parse text contents from {f.name}: {str(parse_error)}")
+                    file_contents = f"[ERROR: Unreadable binary content in {f.name}]"
+
                 parsed_logs_payload += f"\n--- SOURCE FILE: {f.name} ---\n{file_contents}\n"
                 st.markdown(f'<div class="file-card"><strong>📄 {f.name}</strong><br><small style="color:#94a3b8;">Size: {round(f.size/1024, 2)} KB</small></div>', unsafe_allow_html=True)
         else:
             parsed_logs_payload = manual_logs
-
         st.divider()
         execute_btn = st.button("🚀 Run Comprehensive Datov QA Audit", use_container_width=True, type="primary")
 
