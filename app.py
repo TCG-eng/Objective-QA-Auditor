@@ -170,11 +170,9 @@ if current_page == "🛡️ QA Audit Hub":
                             ),
                         )
                       
-                        execution_delta = round(time.time() - start_time, 2)
-                        raw_audit_report = response.text
-                      raw_audit_report = response.text
-# Add this line:
-st.session_state["last_audit_report"] = raw_audit_report
+                    execution_delta = round(time.time() - start_time, 2)
+                    raw_audit_report = response.text
+                    st.session_state["last_audit_report"] = raw_audit_report
                         # UNIQUE TRACKING ENGINE GENERATION
                         generated_id = f"DTV-{uuid.uuid4().hex[:6].upper()}"
                         current_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
