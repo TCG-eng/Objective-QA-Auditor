@@ -160,7 +160,7 @@ if current_page == "🛡️ QA Audit Hub":
                     try:
                         status_container.update(label="Engaging Gemini generative reasoning arrays...", state="running")
                         start_time = time.time()
-                  
+                 
                         response = client.models.generate_content(
                             model=target_model,
                             contents=user_payload,
@@ -169,14 +169,15 @@ if current_page == "🛡️ QA Audit Hub":
                                 temperature=temperature,
                             ),
                         )
-                      
-                    execution_delta = round(time.time() - start_time, 2)
-                    raw_audit_report = response.text
-                    st.session_state["last_audit_report"] = raw_audit_report
+                     
+                        execution_delta = round(time.time() - start_time, 2)
+                        raw_audit_report = response.text
+       
+                        st.session_state["last_audit_report"] = raw_audit_report
                         # UNIQUE TRACKING ENGINE GENERATION
                         generated_id = f"DTV-{uuid.uuid4().hex[:6].upper()}"
                         current_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                       
+                  
                         # Add running history metrics row
                         st.session_state["audit_history_log"].append({
                             "Audit ID": generated_id,
@@ -185,8 +186,12 @@ if current_page == "🛡️ QA Audit Hub":
                             "Model Engine": target_model,
                             "Latency": f"{execution_delta}s"
                         })
-                       
+                      
                         status_container.update(label="Analysis Pipeline Completed!", state="complete")
+                   
+                    except Exception as e:
+                        status_container.update(label="Critical System Interrupt", state="error")
+                        st.error(f"Ecosystem Evaluation Pipeline Interrupted: {str(e)}")
                       
                         m_col1, m_col2 = st.columns(2)
                         with m_col1:
