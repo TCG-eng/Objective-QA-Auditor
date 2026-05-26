@@ -206,17 +206,16 @@ if current_page == "🛡️ QA Audit Hub":
                             mime="text/markdown",
                             use_container_width=True
                         )
-                      if st.button("🔄 Reset Workspace", use_container_width=True):
-                            st.session_state.pop("last_audit_report", None)
-                            st.session_state.pop("last_generated_id", None)
-                            st.rerun()
 
                     except Exception as e:
                         status_container.update(label="Critical System Interrupt", state="error")
                         st.error(f"Ecosystem Evaluation Pipeline Interrupted: {str(e)}")
         else:
             st.info("💡 System Awaiting Inbound Data Feed. Populate your criteria specifications and drop your files on the left panel, then hit the run button to stream your analysis report.")
-
+        if st.button("🔄 Reset Workspace", use_container_width=True):
+            st.session_state.pop("last_audit_report", None)
+            st.session_state.pop("last_generated_id", None)
+            st.rerun()
         # HISTORICAL RUN LOG REGISTRY TABLE VISUALIZATION
         if st.session_state["audit_history_log"]:
             st.write("###")
