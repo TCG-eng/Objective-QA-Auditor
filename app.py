@@ -144,7 +144,7 @@ if current_page == "🛡️ QA Audit Hub":
                   
                     client = genai.Client(api_key=st.session_state["gemini_api_key"])
                   
-                   system_instructions = (
+                    system_instructions = (
                         "You are an elite automated system QA auditor working inside the Datov Ecosystem.\n"
                         "Your job is to provide an explicit, granular breakdown of the audit outcomes.\n\n"
                         "Structure your response with clear Markdown headers:\n\n"
