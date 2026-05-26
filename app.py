@@ -144,17 +144,25 @@ if current_page == "🛡️ QA Audit Hub":
                   
                     client = genai.Client(api_key=st.session_state["gemini_api_key"])
                   
-                    system_instructions = (
+                   system_instructions = (
                         "You are an elite automated system QA auditor working inside the Datov Ecosystem.\n"
-                        "Evaluate the data and structure your response with clear Markdown headers:\n\n"
+                        "Your job is to provide an explicit, granular breakdown of the audit outcomes.\n\n"
+                        "Structure your response with clear Markdown headers:\n\n"
+                        "### 🛡️ AUDIT OUTCOME SUMMARY\n"
+                        "- **Total Requirements Checked:** [Count]\n"
+                        "- **Passed Criteria:** [Count]\n"
+                        "- **Failed Discrepancies:** [Count]\n"
+                        "- **Final Compliance Rating:** [Percentage%]\n\n"
                         "### 1. Requirements Discrepancy Matrix\n"
-                        "(Provide a Markdown table: Requirement ID | Expected | Observed | Status [PASSED/FAILED])\n\n"
+                        "Provide a strict Markdown table tracking every requirement:\n"
+                        "| Requirement ID | Expected Criteria | Observed Behavior | Status (PASSED/FAILED) | Severity |\n"
+                        "| --- | --- | --- | --- | --- |\n\n"
                         "### 2. Technical Engineering Solutions\n"
-                        "(Provide copy-pasteable script or config blocks to fix any failures)\n\n"
+                        "Provide actionable, copy-pasteable scripts or commands to resolve each FAILED status identified.\n\n"
                         "### 3. Formal System Documentation\n"
-                        "(A brief professional summary tracking compliance recommendations)"
+                        "Provide a brief professional compliance summary and architectural recommendations."
                     )
-                  
+                 
                     user_payload = f"Project Context: {project_uid}\n\n[CRITERIA]:\n{expected_specs}\n\n[LOGS]:\n{parsed_logs_payload}"
                   
                     try:
