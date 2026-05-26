@@ -69,21 +69,14 @@ if current_page == "🛡️ QA Audit Hub":
     with col_inputs:
         st.subheader("📥 Data Intake Engine")
         st.markdown("### 📋 System Requirements Criteria")
-     
-        # Check if a global file name tag is currently stored in memory
-        if "git_filename" in st.session_state:
-            default_specs = f"📄 Loaded from GitHub: {st.session_state['git_filename']}"
-        else:
-            default_specs = st.session_state.get("selected_sop_text", "Example:\nREQ-1: Auth tokens must be encrypted.\nREQ-2: Gateway latency must remain under 200ms.")
-           
+      
+        default_specs = st.session_state.get("selected_sop_text", "Example:\nREQ-1: Auth tokens must be encrypted.\nREQ-2: Gateway latency must remain under 200ms.")
         expected_specs = st.text_area(
             "Define Objective Engineering Standards / Acceptance Criteria:",
             value=default_specs,
             height=180,
             key="specs_input"
         )
-        
-
       
         st.markdown("### 📂 Document Upload Portal")
         # UPDATED: Added pdf and docx to the allowed types list
@@ -162,8 +155,7 @@ if current_page == "🛡️ QA Audit Hub":
                         "(A brief professional summary tracking compliance recommendations)"
                     )
                   
-                    true_criteria = st.session_state.get("selected_sop_text", expected_specs)
-                    user_payload = f"Project Context: {project_uid}\n\n[CRITERIA]:\n{true_criteria}\n\n[LOGS]:\n{parsed_logs_payload}"
+                    user_payload = f"Project Context: {project_uid}\n\n[CRITERIA]:\n{expected_specs}\n\n[LOGS]:\n{parsed_logs_payload}"
                   
                     try:
                         status_container.update(label="Engaging Gemini generative reasoning arrays...", state="running")
@@ -273,54 +265,57 @@ elif current_page == "📚 Procedures Library":
 
     # API Targeting root assets folder
     api_url = "https://api.github.com/repos/TCG-eng/Objective-QA-Auditor/contents/assets"
-  
+   
     try:
         response = requests.get(api_url)
-      
-        docs = {f['name']: f['download_url'] for f in files if f['name'].lower().endswith('.pdf')}
-              
+       
+        if response.status_code == 200:
+            files = response.json()
+            # Changed to look for .pdf files in your assets folder
+            docs = {f['name']: f['download_url'] for f in files if f['name'].lower().endswith('.pdf')}
+           
+            if docs:
+                selected_git = st.selectbox("Select document from GitHub:", list(docs.keys()))
+               
                 if st.button("📥 Load GitHub Document"):
                     if selected_git in docs:
+                        # 1. Show an active parsing spinner right at the button
                         with st.spinner(f"Parsing and extracting text from {selected_git}..."):
-                    [span_9](start_span)if selected_git in docs:[span_9](end_span)
-                        [span_10](start_span)with st.spinner(f"Parsing and extracting text from {selected_git}..."):[span_10](end_span)
-                            [span_11](start_span)content_resp = requests.get(docs[selected_git])[span_11](end_span)
-                          
-                            [span_12](start_span)import io[span_12](end_span)
-                            [span_13](start_span)import pypdf[span_13](end_span)
-                          
-                            [span_14](start_span)pdf_stream = io.BytesIO(content_resp.content)[span_14](end_span)
-                            [span_15](start_span)pdf_reader = pypdf.PdfReader(pdf_stream)[span_15](end_span)
-                          
+                            content_resp = requests.get(docs[selected_git])
+                           
+                            import io
+                            import pypdf
+                           
+                            pdf_stream = io.BytesIO(content_resp.content)
+                            pdf_reader = pypdf.PdfReader(pdf_stream)
+                           
                             extracted_text = ""
-                            [span_16](start_span)for page in pdf_reader.pages:[span_16](end_span)
-                                [span_17](start_span)page_text = page.extract_text()[span_17](end_span)
-                                [span_18](start_span)if page_text:[span_18](end_span)
-                                    [span_19](start_span)extracted_text += page_text + "\n"[span_19](end_span)
-                          
-                            [span_20](start_span)if extracted_text.strip():[span_20](end_span)
-                                # Store raw data deep in state memory for the AI engine to read
+                            for page in pdf_reader.pages:
+                                page_text = page.extract_text()
+                                if page_text:
+                                    extracted_text += page_text + "\n"
+                           
+                            if extracted_text.strip():
                                 st.session_state["selected_sop_text"] = extracted_text
-                                # Store the file header tag to visually output inside the textbox
-                                st.session_state["git_filename"] = selected_git
-                              
-                                [span_21](start_span)st.toast(f"🎉 Success! {selected_git} loaded into Criteria workspace.", icon="✅")[span_21](end_span)
-                                st.success(f"📂 Loaded successfully! Selected document: {selected_git}")
-                                st.rerun()
+                               
+                                # 2. Force an immediate visual toast message in the bottom corner
+                                st.toast(f"🎉 Success! {selected_git} loaded into Criteria workspace.", icon="✅")
+                               
+                                # 3. Print a green success block directly under the button
+                                st.success(f"📂 Loaded successfully! Scroll up to view requirements.")
                             else:
-                                [span_22](start_span)st.error("⚠️ Failed to extract any readable text from this PDF file.")[span_22](end_span)
+                                st.error("⚠️ Failed to extract any readable text from this PDF file.")
             else:
-                [span_23](start_span)st.warning("⚠️ No .pdf files found inside the 'assets' folder.")[span_23](end_span)
+                st.warning("⚠️ No .pdf files found inside the 'assets' folder.")
         else:
-            [span_24](start_span)st.error(f"GitHub connection failed with status: {response.status_code}. Ensure the 'assets' folder exists at the root of your repo.")[span_24](end_span)
-          
+            st.error(f"GitHub connection failed with status: {response.status_code}. Ensure the 'assets' folder exists at the root of your repo.")
+           
     except Exception as e:
-        [span_25](start_span)st.error(f"Ecosystem lookup error: {e}")[span_25](end_span)
+        st.error(f"Ecosystem lookup error: {e}")
 
-    [span_26](start_span)if st.button("🔄 Reset Workspace"):[span_26](end_span)
-        [span_27](start_span)st.session_state.pop("selected_sop_text", None)[span_27](end_span)
-        st.session_state.pop("git_filename", None) # Clean the visual placeholder string as well
-        [span_28](start_span)st.rerun()[span_28](end_span)
+    if st.button("🔄 Reset Workspace"):
+        st.session_state.pop("selected_sop_text", None)
+        st.rerun()
 
 # =========================================================================
 # PAGE 3: ANALYTICS PERFORMANCE HISTORY
