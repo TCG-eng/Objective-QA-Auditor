@@ -157,6 +157,9 @@ if current_page == "🛡️ QA Audit Hub":
                   
                     user_payload = f"Project Context: {project_uid}\n\n[CRITERIA]:\n{expected_specs}\n\n[LOGS]:\n{parsed_logs_payload}"
                   
+                    # Initialize variables before the try block
+                    execution_delta = 0.0
+                   
                     try:
                         status_container.update(label="Engaging Gemini generative reasoning arrays...", state="running")
                         start_time = time.time()
@@ -172,22 +175,17 @@ if current_page == "🛡️ QA Audit Hub":
                      
                         execution_delta = round(time.time() - start_time, 2)
                         raw_audit_report = response.text
-       
                         st.session_state["last_audit_report"] = raw_audit_report
-                        # UNIQUE TRACKING ENGINE GENERATION
-                        generated_id = f"DTV-{uuid.uuid4().hex[:6].upper()}"
-                        current_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                  
-                        # Add running history metrics row
-                        st.session_state["audit_history_log"].append({
-                            "Audit ID": generated_id,
-                            "Timestamp": current_timestamp,
-                            "Target Node": project_uid,
-                            "Model Engine": target_model,
-                            "Latency": f"{execution_delta}s"
-                        })
-                      
+                       
+                        # ... (keep your existing audit_history_log appending logic here) ...
+                       
                         status_container.update(label="Analysis Pipeline Completed!", state="complete")
+                   
+                        # ONLY show results if the try block succeeded
+                        m_col1, m_col2 = st.columns(2)
+                        with m_col1:
+                            st.markdown(f'<div class="metric-card"><small style="color:#94a3b8;">COMPUTE LATENCY</small><div class="metric-val">{execution_delta}s</div></div>', unsafe_allow_html=True)
+                        # ... (rest of your results display code) ...
                    
                     except Exception as e:
                         status_container.update(label="Critical System Interrupt", state="error")
