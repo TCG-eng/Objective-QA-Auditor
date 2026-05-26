@@ -207,9 +207,9 @@ if current_page == "🛡️ QA Audit Hub":
                             use_container_width=True
                         )
                       if st.button("🔄 Reset Workspace", use_container_width=True):
-            st.session_state.pop("last_audit_report", None)
-            st.session_state.pop("last_generated_id", None)
-            st.rerun()
+                            st.session_state.pop("last_audit_report", None)
+                            st.session_state.pop("last_generated_id", None)
+                            st.rerun()
 
                     except Exception as e:
                         status_container.update(label="Critical System Interrupt", state="error")
