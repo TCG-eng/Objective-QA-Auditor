@@ -172,7 +172,9 @@ if current_page == "🛡️ QA Audit Hub":
                       
                         execution_delta = round(time.time() - start_time, 2)
                         raw_audit_report = response.text
-                      
+                      raw_audit_report = response.text
+# Add this line:
+st.session_state["last_audit_report"] = raw_audit_report
                         # UNIQUE TRACKING ENGINE GENERATION
                         generated_id = f"DTV-{uuid.uuid4().hex[:6].upper()}"
                         current_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -201,7 +203,7 @@ if current_page == "🛡️ QA Audit Hub":
                         st.divider()
                         st.download_button(
                             label="📥 Download Enterprise Markdown Audit Report Manifest (.md)",
-                            data=raw_audit_report,
+                            data=st.session_state.get("last_audit_report", "No report available."),
                             file_name=f"DATOV_QA_REPORT_{generated_id}.md",
                             mime="text/markdown",
                             use_container_width=True
